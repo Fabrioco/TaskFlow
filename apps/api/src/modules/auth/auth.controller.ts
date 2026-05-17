@@ -9,6 +9,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateUserResponseDto } from './dtos/create-user-response.dto';
+import { LoginUserDto } from './dtos/login-user.dto';
 
 @ApiTags('auth')
 @ApiBearerAuth()
@@ -45,5 +46,32 @@ export class AuthController {
   })
   async register(@Body() dto: CreateUserDto) {
     return this.service.register(dto);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({
+    type: LoginUserDto,
+  })
+  @ApiOperation({
+    summary: 'Login de um usuário',
+    description:
+      'Recebe os dados do DTO, verifica se o usuário existe e retorna o token com as informações do usuário',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuário logado com sucesso',
+    type: CreateUserResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuário não encontrado',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'O campo "TAL" está faltando',
+  })
+  async login(@Body() dto: LoginUserDto) {
+    return this.service.login(dto);
   }
 }
