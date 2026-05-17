@@ -1,103 +1,75 @@
 import {
   ConflictException,
   Injectable,
-  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CryptoService } from '../../shared/crypto/crypto.service';
+import { TokenService } from '../../shared/jwt/token.service';
 import { CreateUserDto } from './dtos/create-user.dto';
-import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
 import { LoginUserDto } from './dtos/login-user.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cryptoService: CryptoService,
+    private readonly tokenService: TokenService,
+  ) {}
 
   async register(dto: CreateUserDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Email já Utilizado');
-    }
-
     if (dto.password !== dto.passwordConfirmation) {
       throw new ConflictException('As senhas não conferem');
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const emailExists = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (emailExists) {
+      throw new ConflictException('Email já Utilizado');
+    }
+
+    const passwordHash = await this.cryptoService.hash(dto.password);
 
     const newUser = await this.prisma.user.create({
       data: {
         name: dto.name,
         email: dto.email,
-        passwordHash: passwordHash,
+        passwordHash,
       },
     });
 
-    const token = jwt.sign(
-      {
-        id: newUser.id,
-        email: newUser.email,
-      },
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: '15m',
-        subject: 'user',
-      },
-    );
+    const token = this.tokenService.generateAccessToken(newUser);
 
     return {
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-      },
+      user: { id: newUser.id, name: newUser.name, email: newUser.email },
       token,
     };
   }
 
   async login(dto: LoginUserDto) {
     const user = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
+      where: { email: dto.email },
     });
 
     if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await this.cryptoService.compare(
       dto.password,
       user.passwordHash,
     );
 
     if (!isPasswordValid) {
-      throw new NotFoundException('Email ou senha incorretos');
+      throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-      },
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: '15m',
-        subject: 'user',
-      },
-    );
+    const token = this.tokenService.generateAccessToken(user);
 
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
+      user: { id: user.id, name: user.name, email: user.email },
       access_token: token,
     };
   }

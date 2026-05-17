@@ -64,8 +64,8 @@ export class AuthController {
     type: CreateUserResponseDto,
   })
   @ApiResponse({
-    status: 404,
-    description: 'Usuário não encontrado',
+    status: 401,
+    description: 'Credenciais inválidas',
   })
   @ApiResponse({
     status: 400,
