@@ -33,4 +33,8 @@ export class TokenService {
   verifyRefreshToken(token: string): { id: string } {
     return jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as { id: string };
   }
+
+  verifyAccessToken(token: string): TokenPayload {
+    return jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
+  }
 }
