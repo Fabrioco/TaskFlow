@@ -6,6 +6,7 @@ import {
   Post,
   Res,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -18,9 +19,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateUserResponseDto } from './dtos/create-user-response.dto';
-import type { Response, Request } from 'express';
-import { User } from '../../generated/prisma';
+import { type Response, type Request } from 'express';
+import type { User } from '../../generated/prisma';
 import { TokenService } from '../../shared/jwt/token.service';
+import { CurrentUser } from '../../shared/decorator/current-user.decorator';
+import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 
 interface Cookies {
   [key: string]: string;
@@ -129,7 +132,9 @@ export class AuthController {
     response.cookie('refreshToken', refresh_token, this.cookieOptions);
     return { access_token };
   }
+
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth() // Exige que o usuário envie o Access Token atual para saber quem está deslogando
   @ApiOperation({
@@ -139,16 +144,20 @@ export class AuthController {
   })
   @ApiResponse({ status: 200, description: 'Logout efetuado com sucesso' })
   async logout(
-    @Req() request: Request,
+    @CurrentUser() user: User,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const userId = (request.user as User).id; // Seu Guard de autenticação normal vai injetar o request.user
+    const userId = user.id; // Seu Guard de autenticação normal vai injetar o request.user
 
     // Invalida no banco de dados pondo null no hashedRefreshToken
     await this.service.logout(userId);
 
     // Limpa o cookie do navegador
-    response.clearCookie('refreshToken');
+    response.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
 
     return { message: 'Logout bem-sucedido' };
   }
