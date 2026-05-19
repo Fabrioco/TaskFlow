@@ -18,4 +18,19 @@ export class TokenService {
       },
     );
   }
+
+  generateRefreshToken(payload: TokenPayload): string {
+    if (!process.env.JWT_REFRESH_SECRET) {
+      throw new Error('JWT_REFRESH_SECRET is not defined');
+    }
+    return jwt.sign(
+      { id: payload.id }, // No refresh, o ID já é suficiente
+      process.env.JWT_REFRESH_SECRET, // Uma chave secreta diferente por segurança
+      { expiresIn: '7d' },
+    );
+  }
+
+  verifyRefreshToken(token: string): { id: string } {
+    return jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as { id: string };
+  }
 }
