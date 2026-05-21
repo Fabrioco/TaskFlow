@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   postgres:
@@ -25,6 +25,16 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: taskflow
       RABBITMQ_DEFAULT_PASS: taskflow
+
+  # No docker-compose.yml adiciona um segundo banco
+  taskflow_test:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: taskflow
+      POSTGRES_DB: taskflow_test
+    ports:
+      - "5433:5432"
 
 volumes:
   pgdata:
