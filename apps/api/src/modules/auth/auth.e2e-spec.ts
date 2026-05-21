@@ -36,6 +36,16 @@ type PayloadDefault = {
   passwordConfirmation: string;
 };
 
+type RefreshResponse = {
+  access_token: string;
+  refresh_token: string;
+  message?: string;
+};
+
+type LogoutResponse = {
+  message: string;
+};
+
 describe('Fluxo de Autenticação (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -187,6 +197,26 @@ describe('Fluxo de Autenticação (E2E)', () => {
       const body = response.body as LoginResponse;
 
       expect(body.message).toBe('Credenciais inválidas');
+    });
+  });
+
+  describe('POST /auth/refresh', () => {
+    it('deve atualizar o refresh token', async () => {
+      const response = await registerUser();
+      const cookies: string[] = response.headers[
+        'set-cookie'
+      ] as unknown as string[];
+      const refreshToken = cookies[0].split('=')[1];
+
+      const responseRefresh = await request(app.getHttpServer() as App)
+        .post('/auth/refresh')
+        .set('Cookie', `refreshToken=${refreshToken}`)
+        .send()
+        .expect(200);
+
+      const body = responseRefresh.body as RefreshResponse;
+
+      expect(body).toHaveProperty('access_token');
     });
   });
 });
