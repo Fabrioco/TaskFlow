@@ -6,6 +6,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -55,5 +56,13 @@ export class UserController {
     }
 
     return this.service.updateProfile(dto, user.id);
+  }
+
+  @Delete('profile')
+  @ApiOperation({ summary: 'Deleta o perfil do usuário' })
+  @ApiResponse({ status: 200, description: 'Perfil do usuário deletado' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  async deleteProfile(@CurrentUser() user: User) {
+    return this.service.deleteProfile(user.id);
   }
 }

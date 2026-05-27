@@ -72,4 +72,27 @@ export class UserService {
 
     return updatedUser;
   }
+
+  async deleteProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    if (user.avatarUrl) {
+      const fileExt = user.avatarUrl.split('.').pop()?.split('?')[0] || 'png';
+      const storagePath = `avatar/${userId}.${fileExt}`;
+
+      await this.uploadImage.supabase.storage
+        .from('avatars-taskflow')
+        .remove([storagePath]);
+    }
+
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+  }
 }
