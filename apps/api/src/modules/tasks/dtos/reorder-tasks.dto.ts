@@ -10,4 +10,8 @@ export class ReorderTasksDto {
   @ArrayNotEmpty()
   @IsUUID('all', { each: true })
   orderedIds: string[];
+
+  constructor(orderedIds: string[]) {
+    this.orderedIds = orderedIds;
+  }
 }

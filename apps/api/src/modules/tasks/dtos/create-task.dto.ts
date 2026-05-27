@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TaskStatus, Priority } from '@prisma/client';
+import { TaskStatus, Priority } from '../../../generated/prisma';
 import {
   IsString,
   IsNotEmpty,
@@ -17,7 +17,9 @@ export class CreateTaskDto {
   @MaxLength(255)
   title: string;
 
-  @ApiPropertyOptional({ example: 'Usar o layout do Figma, branch: feat/login' })
+  @ApiPropertyOptional({
+    example: 'Usar o layout do Figma, branch: feat/login',
+  })
   @IsString()
   @IsOptional()
   @MaxLength(2000)
@@ -42,4 +44,8 @@ export class CreateTaskDto {
   @IsUUID()
   @IsOptional()
   assigneeId?: string;
+
+  constructor(title: string) {
+    this.title = title;
+  }
 }

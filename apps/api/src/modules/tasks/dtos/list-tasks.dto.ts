@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { TaskStatus, Priority } from '@prisma/client';
+import { TaskStatus, Priority } from '../../../generated/prisma';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 
 export class ListTasksDto {
@@ -13,7 +13,10 @@ export class ListTasksDto {
   @IsOptional()
   priority?: Priority;
 
-  @ApiPropertyOptional({ example: 'uuid-do-usuario', description: 'Filtrar por responsável' })
+  @ApiPropertyOptional({
+    example: 'uuid-do-usuario',
+    description: 'Filtrar por responsável',
+  })
   @IsUUID()
   @IsOptional()
   assigneeId?: string;

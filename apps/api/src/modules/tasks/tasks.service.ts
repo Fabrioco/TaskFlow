@@ -9,7 +9,7 @@ import { CreateTaskDto } from './dtos/create-task.dto';
 import { UpdateTaskDto } from './dtos/update-task.dto';
 import { ListTasksDto } from './dtos/list-tasks.dto';
 import { ReorderTasksDto } from './dtos/reorder-tasks.dto';
-import { Role } from '@prisma/client';
+import { Role } from '../../generated/prisma';
 
 @Injectable()
 export class TasksService {
@@ -76,7 +76,12 @@ export class TasksService {
     return task;
   }
 
-  async update(userId: string, projectId: string, taskId: string, dto: UpdateTaskDto) {
+  async update(
+    userId: string,
+    projectId: string,
+    taskId: string,
+    dto: UpdateTaskDto,
+  ) {
     const project = await this.findProject(projectId);
     await this.ensureMember(userId, project.workspaceId);
     await this.findOne(userId, projectId, taskId);
@@ -95,7 +100,10 @@ export class TasksService {
 
   async remove(userId: string, projectId: string, taskId: string) {
     const project = await this.findProject(projectId);
-    await this.ensureRole(userId, project.workspaceId, [Role.OWNER, Role.ADMIN]);
+    await this.ensureRole(userId, project.workspaceId, [
+      Role.OWNER,
+      Role.ADMIN,
+    ]);
     await this.findOne(userId, projectId, taskId);
 
     return this.prisma.task.delete({ where: { id: taskId } });

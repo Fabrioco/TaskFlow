@@ -17,7 +17,8 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import { TaskStatus, Priority, User } from '@prisma/client';
+import { TaskStatus, Priority } from '../../generated/prisma';
+import type { User } from '../../generated/prisma';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dtos/create-task.dto';
 import { UpdateTaskDto } from './dtos/update-task.dto';
@@ -35,7 +36,10 @@ export class TasksController {
 
   // POST /projects/:projectId/tasks
   @Post()
-  @ApiOperation({ summary: 'Criar task', description: 'Qualquer membro do workspace pode criar tasks.' })
+  @ApiOperation({
+    summary: 'Criar task',
+    description: 'Qualquer membro do workspace pode criar tasks.',
+  })
   @ApiParam({ name: 'projectId', description: 'ID do projeto' })
   @ApiResponse({ status: 201, description: 'Task criada.' })
   @ApiResponse({ status: 403, description: 'Sem acesso ao workspace.' })
@@ -50,7 +54,11 @@ export class TasksController {
 
   // GET /projects/:projectId/tasks
   @Get()
-  @ApiOperation({ summary: 'Listar tasks', description: 'Retorna tasks ordenadas por `order`. Suporta filtros por status, prioridade e assignee.' })
+  @ApiOperation({
+    summary: 'Listar tasks',
+    description:
+      'Retorna tasks ordenadas por `order`. Suporta filtros por status, prioridade e assignee.',
+  })
   @ApiParam({ name: 'projectId', description: 'ID do projeto' })
   @ApiQuery({ name: 'status', required: false, enum: TaskStatus })
   @ApiQuery({ name: 'priority', required: false, enum: Priority })
@@ -84,7 +92,11 @@ export class TasksController {
 
   // PATCH /projects/:projectId/tasks/:id
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar task', description: 'Qualquer membro pode atualizar. Para remover assignee, envie assigneeId: null.' })
+  @ApiOperation({
+    summary: 'Atualizar task',
+    description:
+      'Qualquer membro pode atualizar. Para remover assignee, envie assigneeId: null.',
+  })
   @ApiParam({ name: 'projectId', description: 'ID do projeto' })
   @ApiParam({ name: 'id', description: 'ID da task' })
   @ApiResponse({ status: 200, description: 'Task atualizada.' })
@@ -101,7 +113,10 @@ export class TasksController {
 
   // DELETE /projects/:projectId/tasks/:id
   @Delete(':id')
-  @ApiOperation({ summary: 'Deletar task', description: 'Requer role OWNER ou ADMIN.' })
+  @ApiOperation({
+    summary: 'Deletar task',
+    description: 'Requer role OWNER ou ADMIN.',
+  })
   @ApiParam({ name: 'projectId', description: 'ID do projeto' })
   @ApiParam({ name: 'id', description: 'ID da task' })
   @ApiResponse({ status: 200, description: 'Task deletada.' })
@@ -119,11 +134,19 @@ export class TasksController {
   @Patch('reorder')
   @ApiOperation({
     summary: 'Reordenar tasks',
-    description: 'Recebe um array com todos os IDs do projeto na nova ordem. Atualiza o campo `order` de cada task via transaction.',
+    description:
+      'Recebe um array com todos os IDs do projeto na nova ordem. Atualiza o campo `order` de cada task via transaction.',
   })
   @ApiParam({ name: 'projectId', description: 'ID do projeto' })
-  @ApiResponse({ status: 200, description: 'Tasks reordenadas.', schema: { example: { reordered: 5 } } })
-  @ApiResponse({ status: 400, description: 'IDs inválidos ou que não pertencem ao projeto.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tasks reordenadas.',
+    schema: { example: { reordered: 5 } },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'IDs inválidos ou que não pertencem ao projeto.',
+  })
   @ApiResponse({ status: 403, description: 'Sem acesso ao workspace.' })
   reorder(
     @CurrentUser() user: User,
