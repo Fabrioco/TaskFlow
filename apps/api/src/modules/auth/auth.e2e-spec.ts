@@ -42,13 +42,10 @@ type RefreshResponse = {
   message?: string;
 };
 
-type LogoutResponse = {
-  message: string;
-};
-
 describe('Fluxo de Autenticação (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let cryptoService: CryptoService;
 
   const payloadDefault = {
